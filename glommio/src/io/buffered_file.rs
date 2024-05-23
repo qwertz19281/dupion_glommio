@@ -5,8 +5,7 @@
 //
 
 use crate::{
-    io::{glommio_file::GlommioFile, read_result::ReadResult, OpenOptions},
-    GlommioError,
+    io::{glommio_file::GlommioFile, read_result::ReadResult, OpenOptions}, sys::Statx, GlommioError
 };
 use std::{
     cell::Ref,
@@ -271,6 +270,13 @@ impl BufferedFile {
 
     pub(crate) fn discard(self) -> (RawFd, Option<PathBuf>) {
         self.file.discard()
+    }
+
+    /// When a file is opened, glommio has to fetch some stats for it's scheduling.
+    ///
+    /// Returns these stats if available
+    pub fn init_stats(&self) -> Option<&Statx> {
+        self.file.init_stats()
     }
 }
 

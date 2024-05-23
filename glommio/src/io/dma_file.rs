@@ -14,7 +14,7 @@ use crate::{
         read_result::ReadResult,
         ScheduledSource,
     },
-    sys::{self, sysfs, DirectIo, DmaBuffer, DmaSource, PollableStatus},
+    sys::{self, sysfs, DirectIo, DmaBuffer, DmaSource, PollableStatus, Statx},
 };
 use futures_lite::{Stream, StreamExt};
 use nix::sys::statfs::*;
@@ -637,6 +637,13 @@ impl DmaFile {
             Err(_) => Ok(CloseResult::Unreferenced),
             Ok(file) => file.close().await.map(|_| CloseResult::Closed),
         }
+    }
+
+    /// When a file is opened, glommio has to fetch some stats for it's scheduling.
+    ///
+    /// Returns these stats if available
+    pub fn init_stats(&self) -> Option<&Statx> {
+        self.file.init_stats()
     }
 }
 

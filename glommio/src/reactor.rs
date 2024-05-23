@@ -752,6 +752,23 @@ impl Reactor {
         source
     }
 
+    pub(crate) fn statx_path(&self, raw: RawFd, path: &Path) -> Source {
+        let path = CString::new(path.as_os_str().as_bytes()).expect("path contained null!");
+
+        let statx_buf = unsafe {
+            let statx_buf = mem::MaybeUninit::<Statx>::zeroed();
+            statx_buf.assume_init()
+        };
+
+        let source = self.new_source(
+            raw,
+            SourceType::StatxPath(path, Box::new(RefCell::new(statx_buf))),
+            None,
+        );
+        self.sys.statx_path(&source);
+        source
+    }
+
     pub(crate) fn open_at(
         &self,
         dir: RawFd,

@@ -41,6 +41,7 @@ pub(crate) struct GlommioFile {
     pub(crate) inode: u64,
     pub(crate) dev_major: u32,
     pub(crate) dev_minor: u32,
+    pub(crate) init_stats: Option<Statx>,
     pub(crate) reactor: Weak<Reactor>,
     pub(crate) scheduler: RefCell<Option<FileScheduler>>,
 }
@@ -78,6 +79,7 @@ impl FromRawFd for GlommioFile {
             inode: 0,
             dev_major: 0,
             dev_minor: 0,
+            init_stats: None,
             reactor: Rc::downgrade(&crate::executor().reactor()),
             scheduler: RefCell::new(None),
         }
@@ -109,6 +111,7 @@ impl GlommioFile {
             inode: 0,
             dev_major: 0,
             dev_minor: 0,
+            init_stats: None,
             reactor: Rc::downgrade(&reactor),
             scheduler: RefCell::new(None),
         };
@@ -117,6 +120,7 @@ impl GlommioFile {
         file.inode = st.stx_ino;
         file.dev_major = st.stx_dev_major;
         file.dev_minor = st.stx_dev_minor;
+        file.init_stats = Some(st);
         Ok(file)
     }
 
@@ -129,6 +133,7 @@ impl GlommioFile {
             inode: self.inode,
             dev_major: self.dev_major,
             dev_minor: self.dev_minor,
+            init_stats: self.init_stats.clone(),
             reactor: Rc::downgrade(&reactor),
             scheduler: RefCell::new(None),
         };
@@ -322,6 +327,10 @@ impl GlommioFile {
         let st = self.statx().await?;
         Ok(st.stx_size)
     }
+
+    pub(crate) fn init_stats(&self) -> Option<&Statx> {
+        self.init_stats.as_ref()
+    }
 }
 
 /// This lets you open a DmaFile on one thread and then send it safely to another thread for processing.
@@ -332,6 +341,7 @@ pub(crate) struct OwnedGlommioFile {
     pub(crate) inode: u64,
     pub(crate) dev_major: u32,
     pub(crate) dev_minor: u32,
+    pub(crate) init_stats: Option<Statx>,
 }
 
 unsafe impl Send for OwnedGlommioFile {}
@@ -349,6 +359,7 @@ impl OwnedGlommioFile {
             inode: self.inode,
             dev_major: self.dev_major,
             dev_minor: self.dev_minor,
+            init_stats: self.init_stats.clone(),
         })
     }
 }
@@ -377,6 +388,7 @@ impl From<OwnedGlommioFile> for GlommioFile {
             inode: owned.inode,
             dev_major: owned.dev_major,
             dev_minor: owned.dev_minor,
+            init_stats: owned.init_stats.clone(),
             reactor: Rc::downgrade(&reactor),
             scheduler: RefCell::new(None),
         }
@@ -391,6 +403,7 @@ impl From<GlommioFile> for OwnedGlommioFile {
             inode: value.inode,
             dev_major: value.dev_major,
             dev_minor: value.dev_minor,
+            init_stats: value.init_stats.clone(),
         }
     }
 }

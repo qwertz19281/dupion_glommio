@@ -241,6 +241,22 @@ impl OpenOptions {
         )
         .await
     }
+
+    /// Similar to `OpenOptions::open()` in the standard library, but returns a
+    /// Buffered file
+    pub async fn buffered_open_fdcwd<P: AsRef<Path>>(&self, path: P) -> Result<BufferedFile> {
+        BufferedFile::open_with_options(
+            libc::AT_FDCWD,
+            path.as_ref(),
+            if self.create || self.create_new || self.tmpfile {
+                "Creating"
+            } else {
+                "Opening"
+            },
+            self,
+        )
+        .await
+    }
 }
 
 #[cfg(test)]

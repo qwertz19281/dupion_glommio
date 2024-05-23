@@ -292,6 +292,10 @@ mod reactor;
 mod sys;
 pub mod task;
 
+pub use sys::StatxTimestamp;
+
+pub use futures_lite;
+
 #[allow(dead_code)]
 #[allow(clippy::upper_case_acronyms)]
 mod uring_sys;

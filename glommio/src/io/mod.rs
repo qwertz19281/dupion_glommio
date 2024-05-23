@@ -170,6 +170,7 @@ pub use self::{
     open_options::OpenOptions,
     read_result::ReadResult,
     stat::Stat,
+    stat::statx,
 };
 pub use crate::sys::DmaBuffer;
 
