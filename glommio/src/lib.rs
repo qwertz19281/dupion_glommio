@@ -292,6 +292,7 @@ mod reactor;
 mod sys;
 pub mod task;
 
+pub use sys::Statx;
 pub use sys::StatxTimestamp;
 
 pub use futures_lite;
